@@ -1,0 +1,118 @@
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+
+export default  function App()  {
+  const [isLoading, setLoading] = useState(true);
+  const [data, setData] = useState([]);
+
+  const getMovies = async () => {
+     try {
+      const response = await fetch('https://reactnative.dev/movies.json');
+      const json = await response.json();
+      setData(json.movies);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getMovies();
+  }, []);
+
+  return (
+    <View style={{ flex: 1, padding: 24 }}>
+      {isLoading ? <ActivityIndicator/> : (
+        <FlatList
+          data={data}
+          keyExtractor={({ id }, index) => id}
+          renderItem={({ item }) => (
+            <Text>{item.title}, {item.releaseYear}</Text>
+          )}
+        />
+      )}
+    </View>
+  );
+};
+
+
+///////////////////////
+
+
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import { ActivityIndicatorBase, Button, FlatList,StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator } from 'react-native-web';
+
+async function GetPokemonsApi(){
+  let Api= await fetch(`https://pokeapi.co/api/v2/pokemon?limit=50`)
+  let nue = await Api.json()
+  let ApiUrl= nue.results.map(  e=>  fetch(e.url).then(r=> r.json()))
+  let PokemonDates=await Promise.all(ApiUrl)
+  
+       let objApi=PokemonDates.map(e=>  {
+     
+      return {
+                  id:e.id,
+                  name:e.name,
+                  weigth:e.weight,
+                  height:e.height,
+                  hp:e.stats[0].base_stat,
+                  attack:e.stats[1].base_stat,
+                  defense:e.stats[2].base_stat,
+                  speed:e.stats[5].base_stat,
+                  types:e.types.map(e=>e.type.name),
+                  img:e.sprites.other.home.front_default,
+                  gif:e.sprites.versions['generation-v']['black-white'].animated.front_default,
+                  gifback:e.sprites.versions['generation-v']['black-white'].animated.back_default
+               
+                }
+       
+       } )
+              return  objApi 
+  }
+  
+ 
+
+
+export default function App() {
+
+  const [isLoading, setLoading] = useState(true);
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    
+    
+     setData(GetPokemonsApi())
+
+
+
+   
+  }, [])
+
+
+  
+  return (
+    <View style={{ flex: 1, padding: 24 }}>
+    { (
+      <FlatList
+        data={data}
+        keyExtractor={({ id }, index) => id}
+        renderItem={({ item }) => (
+          <Text>{item.name}</Text>
+        )}
+      />
+    )}
+  </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
